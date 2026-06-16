@@ -1,6 +1,9 @@
 import pandas as pd
 import os
 
+# Cole o link aqui para ativar o Sheets automaticamente. Se deixar vazio "", o script ignora o Sheets.
+SPREADSHEET_URL = "COLE O LINK AQUI"
+
 def limpar_moeda(valor):
     """Trata strings de moeda brasileira, nulos e valores numéricos para float."""
     if pd.isna(valor):
@@ -48,6 +51,10 @@ def registrar_no_historico(res):
 def registrar_no_sheets(entry):
     """Envia os resultados para uma planilha do Google Sheets (opcional)."""
     try:
+        
+        if not SPREADSHEET_URL:
+            return
+        
         import gspread
         from google.oauth2.service_account import Credentials
         scopes = [
@@ -65,16 +72,9 @@ def registrar_no_sheets(entry):
         creds = Credentials.from_service_account_file(creds_path, scopes=scopes)
         client = gspread.authorize(creds)
         
-        # Verifique se este ID é exatamente o que aparece na URL da sua planilha
-        planilhas_disponiveis = client.openall()
-
-        if not planilhas_disponiveis:
-            print("Erro: O robô não tem acesso a nenhuma planilha. Compartilhe a nova planilha com o e-mail dele!")
-            return
-
-        # 2. Ele seleciona automaticamente a PRIMEIRA planilha que encontrar (a mais recente ou a única compartilhada)
-        planilha_automatica = planilhas_disponiveis[0]
-        sheet = planilha_automatica.get_worksheet(0)
+        # Abre usando a variável global correta
+        planilha = client.open_by_url(SPREADSHEET_URL)
+        sheet = planilha.get_worksheet(0)
         
         # Adiciona cabeçalhos automaticamente se a planilha estiver vazia
         if not sheet.get_all_values():

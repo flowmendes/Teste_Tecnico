@@ -49,7 +49,7 @@ Teste_Tecnico_Growth/
 
 ## Uso com Assistentes de IA (Claude Code, Cursor, Gemini)
 
-Esta ferramenta foi desenhada para ser acionada via linguagem natural. Se você estiver usando um assistente com acesso ao terminal (como Claude Code, Cursor ou Gemini), você pode simplesmente dizer:
+Se você estiver usando um assistente com acesso ao terminal (como Claude Code, Cursor ou Copilot), você pode simplesmente dizer:
 
 > "Analise o novo teste contido em `dados/novo_dataset.csv` usando o script analyzer e me dê a recomendação final."
 
@@ -72,12 +72,13 @@ O analyzer utiliza as seguintes métricas chave:
 - Se o efeito for estatisticamente significante mas o **Cohen's d** for muito baixo (< 0.2), o sistema alerta que o impacto operacional pode ser desprezível.
 - Em caso de inconclusividade, o sistema recomenda a continuidade da coleta de dados.
 
+
 ## Configuração do Google Sheets
 
 Para habilitar a escrita direta no Google Sheets:
-1. Crie um projeto no Google Cloud Console.
-2. Ative a **Google Sheets API** e **Google Drive API**.
-3. Crie uma **Service Account**, gere uma chave JSON e salve-a como `credentials.json` na raiz deste projeto.
-4. Compartilhe sua planilha de log com o e-mail da Service Account criada.
+1. **Crie um projeto:** Acesse o [Google Cloud Console](https://console.cloud.google.com/) e clique em **Novo Projeto** (no topo da tela).
+2. **Ative as APIs:** No menu lateral, vá em **Biblioteca de APIs** e ative a **Google Sheets API** e a **Google Drive API**.
+3. **Gere a chave JSON:** Crie uma **Service Account** (Conta de serviço) dentro do seu projeto. Acesse as configurações dela, vá na aba **Chaves** > **Adicionar Chave** > **Criar nova chave (JSON)**. Baixe o arquivo e **salve-o como** `credentials.json` **na raiz deste projeto**.
+4. **Compartilhe a planilha:** Abra o seu Google Sheets, clique em **Compartilhar** e adicione o e-mail da Conta de Serviço criada como **Editor** (esse e-mail estará listado dentro do arquivo `credentials.json` no campo `"client_email"`). Por fim, copie a URL completa da planilha e cole-a na variável `SPREADSHEET_URL` no topo do arquivo `scripts/utils.py`.
 
 ---
