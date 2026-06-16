@@ -17,6 +17,11 @@ def limpar_moeda(valor):
                     s = s.replace('.', '').replace(',', '.')
                 else:
                     s = s.replace(',', '.')
+            elif '.' in s:
+                # Se houver ponto mas não vírgula, verificamos se é separador de milhar.
+                # Heurística: se houver 3 dígitos após o ponto ou múltiplos pontos.
+                if len(s.split('.')[-1]) == 3 or s.count('.') > 1:
+                    s = s.replace('.', '')
             return float(s)
         except (ValueError, TypeError):
             return 0.0
@@ -45,12 +50,38 @@ def registrar_no_sheets(entry):
     try:
         import gspread
         from google.oauth2.service_account import Credentials
-        scopes = ['https://www.googleapis.com/auth/spreadsheets']
-        # Assume que o credentials.json está na raiz do projeto
-        creds = Credentials.from_service_account_file('credentials.json', scopes=scopes)
+        scopes = [
+            'https://www.googleapis.com/auth/spreadsheets',
+            'https://www.googleapis.com/auth/drive'
+        ]
+        # Resolve o caminho absoluto para as credenciais (evita erro dependendo de onde o script é chamado)
+        base_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        creds_path = os.path.join(base_path, 'credentials.json')
+
+        if not os.path.exists(creds_path):
+            print(f"Erro: Arquivo {creds_path} não encontrado.")
+            return
+
+        creds = Credentials.from_service_account_file(creds_path, scopes=scopes)
         client = gspread.authorize(creds)
-        sheet = client.open_by_key("1W5L7iL-F8M9-6o_KjD_3B_m_Yf8-k-P-U_K").get_worksheet(0)
+        
+        # Verifique se este ID é exatamente o que aparece na URL da sua planilha
+        planilhas_disponiveis = client.openall()
+
+        if not planilhas_disponiveis:
+            print("Erro: O robô não tem acesso a nenhuma planilha. Compartilhe a nova planilha com o e-mail dele!")
+            return
+
+        # 2. Ele seleciona automaticamente a PRIMEIRA planilha que encontrar (a mais recente ou a única compartilhada)
+        planilha_automatica = planilhas_disponiveis[0]
+        sheet = planilha_automatica.get_worksheet(0)
+        
+        # Adiciona cabeçalhos automaticamente se a planilha estiver vazia
+        if not sheet.get_all_values():
+            sheet.append_row(list(entry.keys()))
+            
         sheet.append_row(list(entry.values()))
         print("Registro no Google Sheets realizado com sucesso.")
     except Exception as e:
-        print(f"Nota: Falha ao registrar no Google Sheets (Opcional): {e}")
+        print(f"\n[DEBUG SHEETS] Erro ao registrar: {type(e).__name__}")
+        print(f"[DEBUG SHEETS] Detalhes: {e}")

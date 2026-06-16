@@ -72,3 +72,4 @@ out/
 *.sql
 *.sqlite
 *.db
+credentials.json
